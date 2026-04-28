@@ -8,6 +8,8 @@ export interface WeightLog {
   fat_mass_kg: number | null
   whr: number | null
   bmi: number | null
+  waist_navel_cm: number | null
+  waist_narrowest_cm: number | null
   source: 'scale' | 'inbody' | null
   notes: string | null
   created_at: string
@@ -110,12 +112,13 @@ export interface Exercise {
   sets: number
   reps: string
   cue: string
+  is_primary?: boolean
   youtube?: string
   musclewiki?: string
 }
 
 export interface WorkoutProgram {
-  id: 'A' | 'B' | 'C'
+  id: 'A' | 'B'
   name: string
   subtitle: string
   rest: string

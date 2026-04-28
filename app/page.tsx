@@ -208,7 +208,8 @@ function ActivityIcon({ type }: { type: string }) {
 
 function WeeklyMiniCalendar() {
   const days = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
-  const types = ['rest', 'A', 'badminton', 'B', 'badminton', 'A', 'badminton']
+  // Sun rest, Mon A (Lower+Pull), Tue badminton, Wed rest, Thu badminton, Fri B (Upper+Push), Sat badminton
+  const types = ['rest', 'A', 'badminton', 'rest', 'badminton', 'B', 'badminton']
   const colors: Record<string, string> = {
     A: '#e85d3a', B: '#3ecf8e', badminton: '#3ecf8e', rest: '#6b7280'
   }

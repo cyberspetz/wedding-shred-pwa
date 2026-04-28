@@ -20,7 +20,7 @@ export default function DailyHabitsCard() {
   const [userId, setUserId] = useState<string | null>(null)
   const today = getTodayString()
   const todayActivity = getTodayWorkout()
-  const isGymDay = todayActivity === 'A' || todayActivity === 'B' || todayActivity === 'C'
+  const isGymDay = todayActivity === 'A' || todayActivity === 'B'
 
   const load = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser()

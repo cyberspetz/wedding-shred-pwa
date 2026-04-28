@@ -10,20 +10,15 @@ import {
   getPhase,
   GOAL_WEIGHT,
   START_WEIGHT,
-  CALORIE_TARGET,
   PROTEIN_TARGET,
-  WATER_TARGET_ML,
 } from '@/lib/utils'
-import { KEY_PRINCIPLES as PRINCIPLES } from '@/lib/workoutData'
 
 const STATS = [
-  { label: 'Height', value: '188 cm (InBody ref)' },
-  { label: 'Start Weight', value: `${START_WEIGHT} kg (Mar 2026)` },
+  { label: 'Height', value: '191 cm' },
+  { label: 'Start Weight', value: `${START_WEIGHT} kg` },
   { label: 'Goal Weight', value: `${GOAL_WEIGHT} kg` },
-  { label: 'Target Body Fat', value: '15–17%' },
-  { label: 'Daily Calories', value: `${CALORIE_TARGET} kcal` },
-  { label: 'Daily Protein', value: `${PROTEIN_TARGET}g` },
-  { label: 'Daily Water', value: `${WATER_TARGET_ML / 1000}L` },
+  { label: 'Target Body Fat', value: '14–15%' },
+  { label: 'Daily Protein', value: `${PROTEIN_TARGET}g (4 × ~40g)` },
   { label: 'Timezone', value: 'Asia/Ho_Chi_Minh (ICT)' },
   { label: 'Wedding Date', value: 'June 20, 2026' },
 ]
@@ -165,21 +160,6 @@ export default function SettingsPage() {
               <div key={s.label} className="flex items-center justify-between">
                 <span className="text-sm text-muted">{s.label}</span>
                 <span className="text-sm text-white font-num">{s.value}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Key principles */}
-        <div className="bg-card rounded-2xl p-5">
-          <p className="text-xs text-muted uppercase tracking-wider mb-3">Key Principles</p>
-          <div className="space-y-2.5">
-            {PRINCIPLES.map((p, i) => (
-              <div key={i} className="flex gap-2.5">
-                <div className="w-5 h-5 rounded-full bg-accent/20 flex items-center justify-center shrink-0 mt-0.5">
-                  <span className="text-accent text-[10px] font-bold">{i + 1}</span>
-                </div>
-                <p className="text-xs text-muted leading-relaxed">{p}</p>
               </div>
             ))}
           </div>

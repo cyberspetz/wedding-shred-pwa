@@ -52,6 +52,8 @@ export default function ProgressPage() {
   const [form, setForm] = useState({
     date: getTodayString(),
     weight_kg: '',
+    waist_navel_cm: '',
+    waist_narrowest_cm: '',
     body_fat_pct: '',
     smm_kg: '',
     fat_mass_kg: '',
@@ -117,6 +119,8 @@ export default function ProgressPage() {
       user_id: userId,
       date: form.date,
       weight_kg: parseFloat(form.weight_kg),
+      waist_navel_cm: form.waist_navel_cm ? parseFloat(form.waist_navel_cm) : null,
+      waist_narrowest_cm: form.waist_narrowest_cm ? parseFloat(form.waist_narrowest_cm) : null,
       body_fat_pct: form.body_fat_pct ? parseFloat(form.body_fat_pct) : null,
       smm_kg: form.smm_kg ? parseFloat(form.smm_kg) : null,
       fat_mass_kg: form.fat_mass_kg ? parseFloat(form.fat_mass_kg) : null,
@@ -126,7 +130,7 @@ export default function ProgressPage() {
       notes: form.notes || null,
     })
     setShowAddWeight(false)
-    setForm({ date: getTodayString(), weight_kg: '', body_fat_pct: '', smm_kg: '', fat_mass_kg: '', whr: '', bmi: '', source: 'scale', notes: '' })
+    setForm({ date: getTodayString(), weight_kg: '', waist_navel_cm: '', waist_narrowest_cm: '', body_fat_pct: '', smm_kg: '', fat_mass_kg: '', whr: '', bmi: '', source: 'scale', notes: '' })
     load()
   }
 
@@ -383,6 +387,11 @@ export default function ProgressPage() {
           </div>
 
           <FormField label="Weight (kg) *" value={form.weight_kg} onChange={(v) => setForm((f) => ({ ...f, weight_kg: v }))} placeholder="86.5" />
+
+          <div className="grid grid-cols-2 gap-3">
+            <FormField label="Waist · navel (cm)" value={form.waist_navel_cm} onChange={(v) => setForm((f) => ({ ...f, waist_navel_cm: v }))} placeholder="86.0" />
+            <FormField label="Waist · narrowest (cm)" value={form.waist_narrowest_cm} onChange={(v) => setForm((f) => ({ ...f, waist_narrowest_cm: v }))} placeholder="83.5" />
+          </div>
 
           {form.source === 'inbody' && (
             <>

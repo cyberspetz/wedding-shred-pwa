@@ -5,19 +5,25 @@
 -- WEIGHT LOGS
 -- ============================================================
 create table if not exists weight_logs (
-  id          uuid primary key default gen_random_uuid(),
-  user_id     uuid references auth.users(id) on delete cascade not null,
-  date        date not null,
-  weight_kg   numeric(5,2) not null,
-  body_fat_pct numeric(4,1),
-  smm_kg      numeric(5,2),
-  fat_mass_kg numeric(5,2),
-  whr         numeric(4,2),
-  bmi         numeric(4,1),
-  source      text check (source in ('scale','inbody')) default 'scale',
-  notes       text,
-  created_at  timestamptz default now()
+  id                 uuid primary key default gen_random_uuid(),
+  user_id            uuid references auth.users(id) on delete cascade not null,
+  date               date not null,
+  weight_kg          numeric(5,2) not null,
+  body_fat_pct       numeric(4,1),
+  smm_kg             numeric(5,2),
+  fat_mass_kg        numeric(5,2),
+  whr                numeric(4,2),
+  bmi                numeric(4,1),
+  waist_navel_cm     numeric(4,1),
+  waist_narrowest_cm numeric(4,1),
+  source             text check (source in ('scale','inbody')) default 'scale',
+  notes              text,
+  created_at         timestamptz default now()
 );
+
+-- Adds waist columns for existing installs (idempotent).
+alter table weight_logs add column if not exists waist_navel_cm     numeric(4,1);
+alter table weight_logs add column if not exists waist_narrowest_cm numeric(4,1);
 
 alter table weight_logs enable row level security;
 
@@ -236,18 +242,23 @@ create index progress_photos_user_date on progress_photos(user_id, date desc);
 
 -- ============================================================
 -- STORAGE BUCKET FOR PROGRESS PHOTOS
--- Run this separately in the Storage section or as SQL:
+-- Idempotent — safe to re-run if the bucket already exists.
 -- ============================================================
--- insert into storage.buckets (id, name, public) values ('progress-photos', 'progress-photos', true);
---
--- create policy "Users can upload own progress photos"
---   on storage.objects for insert
---   with check (bucket_id = 'progress-photos' and auth.uid()::text = (storage.foldername(name))[1]);
---
--- create policy "Progress photos are publicly readable"
---   on storage.objects for select
---   using (bucket_id = 'progress-photos');
---
--- create policy "Users can delete own progress photos"
---   on storage.objects for delete
---   using (bucket_id = 'progress-photos' and auth.uid()::text = (storage.foldername(name))[1]);
+insert into storage.buckets (id, name, public)
+  values ('progress-photos', 'progress-photos', true)
+  on conflict (id) do nothing;
+
+drop policy if exists "Users can upload own progress photos" on storage.objects;
+create policy "Users can upload own progress photos"
+  on storage.objects for insert
+  with check (bucket_id = 'progress-photos' and auth.uid()::text = (storage.foldername(name))[1]);
+
+drop policy if exists "Progress photos are publicly readable" on storage.objects;
+create policy "Progress photos are publicly readable"
+  on storage.objects for select
+  using (bucket_id = 'progress-photos');
+
+drop policy if exists "Users can delete own progress photos" on storage.objects;
+create policy "Users can delete own progress photos"
+  on storage.objects for delete
+  using (bucket_id = 'progress-photos' and auth.uid()::text = (storage.foldername(name))[1]);

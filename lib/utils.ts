@@ -11,7 +11,7 @@ export const WEDDING_DATE = new Date('2026-06-20T00:00:00+07:00')
 export const GOAL_WEIGHT = 83
 export const START_WEIGHT = 88.1
 export const CALORIE_TARGET = 2100
-export const PROTEIN_TARGET = 140
+export const PROTEIN_TARGET = 160 // 4 meals × ~40g per protocol (MPS-saturation per dose)
 export const WATER_TARGET_ML = 3000
 export const TZ = 'Asia/Ho_Chi_Minh'
 
@@ -39,22 +39,22 @@ export function formatWeight(w: number): string {
   return w.toFixed(1)
 }
 
-// Returns which workout is scheduled for today based on the fixed weekly schedule
-// Mon=A, Tue=badminton, Wed=B, Thu=badminton, Fri=A, Sat=badminton, Sun=rest
-export type ScheduledActivity = 'A' | 'B' | 'C' | 'badminton' | 'rest'
+// Returns which workout is scheduled for today based on the fixed weekly schedule.
+// Per protocol: 2 gym sessions (Mon=A Lower+Pull, Fri=B Upper+Push),
+// 3 badminton (Tue/Thu intense, Sat conditional), rest Wed + Sun.
+export type ScheduledActivity = 'A' | 'B' | 'badminton' | 'rest'
 
 export function getTodayWorkout(): ScheduledActivity {
   const now = toZonedTime(new Date(), TZ)
-  const day = now.getDay() // 0=Sun, 1=Mon...
-  const map: ScheduledActivity[] = ['rest', 'A', 'badminton', 'B', 'badminton', 'A', 'badminton']
+  const day = now.getDay() // 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
+  const map: ScheduledActivity[] = ['rest', 'A', 'badminton', 'rest', 'badminton', 'B', 'badminton']
   return map[day]
 }
 
 export function getWorkoutLabel(type: ScheduledActivity): string {
   switch (type) {
-    case 'A': return 'Workout A — Push + Core'
-    case 'B': return 'Workout B — Pull + Core'
-    case 'C': return 'Workout C — Full Body'
+    case 'A': return 'Workout A — Lower + Pull'
+    case 'B': return 'Workout B — Upper + Push'
     case 'badminton': return 'Badminton 🏸'
     case 'rest': return 'Rest / Walk'
   }

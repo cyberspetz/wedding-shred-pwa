@@ -2,13 +2,13 @@
 
 import { useState } from 'react'
 import BottomNav from '@/components/navigation/BottomNav'
-import { WORKOUTS, WEEKLY_SCHEDULE, KEY_PRINCIPLES } from '@/lib/workoutData'
+import { WORKOUTS, WEEKLY_SCHEDULE } from '@/lib/workoutData'
 import { getTodayWorkout, getCurrentWeek, getPhase } from '@/lib/utils'
 import type { WorkoutProgram } from '@/types'
 import WorkoutSessionMode from '@/components/workouts/WorkoutSessionMode'
 
 export default function WorkoutsPage() {
-  const [activeTab, setActiveTab] = useState<'programs' | 'schedule' | 'principles'>('programs')
+  const [activeTab, setActiveTab] = useState<'programs' | 'schedule'>('programs')
   const [sessionWorkout, setSessionWorkout] = useState<WorkoutProgram | null>(null)
   const todayType = getTodayWorkout()
   const week = getCurrentWeek()
@@ -29,7 +29,7 @@ export default function WorkoutsPage() {
       {/* Tabs */}
       <div className="px-5 mb-4">
         <div className="flex bg-card rounded-xl p-1 gap-1">
-          {(['programs', 'schedule', 'principles'] as const).map((t) => (
+          {(['programs', 'schedule'] as const).map((t) => (
             <button
               key={t}
               onClick={() => setActiveTab(t)}
@@ -48,14 +48,12 @@ export default function WorkoutsPage() {
           <div className="space-y-4">
             {WORKOUTS.map((workout) => {
               const isToday = todayType === workout.id
-              const isLocked = workout.id === 'C' && week < 4
               return (
                 <WorkoutCard
                   key={workout.id}
                   workout={workout}
                   isToday={isToday}
-                  isLocked={isLocked}
-                  onStart={() => !isLocked && setSessionWorkout(workout)}
+                  onStart={() => setSessionWorkout(workout)}
                 />
               )
             })}
@@ -91,24 +89,6 @@ export default function WorkoutsPage() {
           </div>
         )}
 
-        {activeTab === 'principles' && (
-          <div className="space-y-3">
-            <div className="bg-card rounded-2xl p-4 mb-2">
-              <p className="text-xs text-muted uppercase tracking-wider mb-1">The Science</p>
-              <p className="text-sm text-white/80">
-                These principles are the difference between spinning your wheels and actually showing up lean on June 20.
-              </p>
-            </div>
-            {KEY_PRINCIPLES.map((p, i) => (
-              <div key={i} className="bg-card rounded-xl p-4 flex gap-3">
-                <div className="w-6 h-6 rounded-full bg-accent/20 flex items-center justify-center shrink-0 mt-0.5">
-                  <span className="text-accent text-xs font-bold">{i + 1}</span>
-                </div>
-                <p className="text-sm text-white/90 leading-relaxed">{p}</p>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
 
       <BottomNav />
@@ -119,12 +99,10 @@ export default function WorkoutsPage() {
 function WorkoutCard({
   workout,
   isToday,
-  isLocked,
   onStart,
 }: {
   workout: WorkoutProgram
   isToday: boolean
-  isLocked: boolean
   onStart: () => void
 }) {
   const [expanded, setExpanded] = useState(isToday)
@@ -151,11 +129,6 @@ function WorkoutCard({
             {isToday && (
               <span className="text-[10px] px-1.5 py-0.5 rounded-full text-white font-medium" style={{ backgroundColor: workout.color }}>
                 Today
-              </span>
-            )}
-            {isLocked && (
-              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-muted/20 text-muted font-medium">
-                Week 4+
               </span>
             )}
           </div>
@@ -217,15 +190,10 @@ function WorkoutCard({
           {/* Start button */}
           <button
             onClick={onStart}
-            disabled={isLocked}
-            className={`w-full py-3.5 rounded-xl font-semibold text-sm mt-2 transition-colors ${
-              isLocked
-                ? 'bg-border text-muted cursor-not-allowed'
-                : 'text-white'
-            }`}
-            style={!isLocked ? { backgroundColor: workout.color } : {}}
+            className="w-full py-3.5 rounded-xl font-semibold text-sm mt-2 transition-colors text-white"
+            style={{ backgroundColor: workout.color }}
           >
-            {isLocked ? '🔒 Unlocks at Week 4' : `Start ${workout.name}`}
+            Start {workout.name}
           </button>
         </div>
       )}
