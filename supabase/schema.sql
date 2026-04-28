@@ -67,10 +67,24 @@ create table if not exists exercise_logs (
   set_number    integer not null,
   reps          integer,
   weight_kg     numeric(5,2),
+  rpe           integer check (rpe between 1 and 10),
   duration_sec  integer,
   completed     boolean default false,
   created_at    timestamptz default now()
 );
+
+-- Add RPE column for existing installs (idempotent).
+alter table exercise_logs add column if not exists rpe integer;
+do $$
+begin
+  if not exists (
+    select 1 from information_schema.constraint_column_usage
+    where table_name = 'exercise_logs' and column_name = 'rpe'
+      and constraint_name like 'exercise_logs_rpe_check'
+  ) then
+    alter table exercise_logs add constraint exercise_logs_rpe_check check (rpe is null or rpe between 1 and 10);
+  end if;
+end$$;
 
 alter table exercise_logs enable row level security;
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import SetTimer from '@/components/ui/SetTimer'
 import Sheet from '@/components/ui/Sheet'
 import type { WorkoutProgram } from '@/types'
@@ -11,9 +11,17 @@ interface SetState {
   completed: boolean
   weight: string
   reps: string
+  rpe: string
 }
 
 type ExerciseSets = Record<string, SetState[]>
+
+interface LastTopSet {
+  weight_kg: number | null
+  reps: number | null
+  rpe: number | null
+  date: string
+}
 
 export default function WorkoutSessionMode({
   workout,
@@ -29,16 +37,65 @@ export default function WorkoutSessionMode({
         completed: false,
         weight: '',
         reps: '',
+        rpe: '',
       }))
     })
     return init
   })
 
+  const [lastSets, setLastSets] = useState<Record<string, LastTopSet>>({})
   const [showTimer, setShowTimer] = useState(false)
   const [timerSeconds, setTimerSeconds] = useState(75)
   const [startTime] = useState(new Date())
   const [showSummary, setShowSummary] = useState(false)
   const [saving, setSaving] = useState(false)
+
+  // Load last completed session of this workout type so we can show the
+  // user "last time you hit X — try Y today". Falls back to empty placeholders.
+  useEffect(() => {
+    let cancelled = false
+    async function loadLast() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const { data: sessions } = await supabase
+        .from('workout_sessions')
+        .select('id, date')
+        .eq('user_id', user.id)
+        .eq('workout_type', workout.id)
+        .not('completed_at', 'is', null)
+        .order('date', { ascending: false })
+        .limit(1)
+      if (cancelled || !sessions || sessions.length === 0) return
+      const session = sessions[0]
+      const { data: logs } = await supabase
+        .from('exercise_logs')
+        .select('exercise_name, set_number, weight_kg, reps, rpe, completed')
+        .eq('session_id', session.id)
+        .eq('completed', true)
+      if (cancelled || !logs) return
+      const top: Record<string, LastTopSet & { set_number: number }> = {}
+      for (const l of logs) {
+        const cur = top[l.exercise_name]
+        if (!cur || l.set_number > cur.set_number) {
+          top[l.exercise_name] = {
+            set_number: l.set_number,
+            weight_kg: l.weight_kg,
+            reps: l.reps,
+            rpe: l.rpe,
+            date: session.date,
+          }
+        }
+      }
+      const map: Record<string, LastTopSet> = {}
+      for (const [k, v] of Object.entries(top)) {
+        const { set_number, ...rest } = v
+        map[k] = rest
+      }
+      setLastSets(map)
+    }
+    loadLast()
+    return () => { cancelled = true }
+  }, [workout.id])
 
   const totalSets = workout.exercises.reduce((sum, ex) => sum + ex.sets, 0)
   const completedSets = Object.values(sets).flat().filter((s) => s.completed).length
@@ -57,7 +114,7 @@ export default function WorkoutSessionMode({
     })
   }, [])
 
-  const updateSet = useCallback((exName: string, idx: number, field: 'weight' | 'reps', value: string) => {
+  const updateSet = useCallback((exName: string, idx: number, field: 'weight' | 'reps' | 'rpe', value: string) => {
     setSets((prev) => ({
       ...prev,
       [exName]: prev[exName].map((s, i) => i === idx ? { ...s, [field]: value } : s),
@@ -90,6 +147,7 @@ export default function WorkoutSessionMode({
             set_number: idx + 1,
             reps: s.reps ? parseInt(s.reps) : null,
             weight_kg: s.weight ? parseFloat(s.weight) : null,
+            rpe: s.rpe ? parseInt(s.rpe) : null,
             completed: s.completed,
           }))
         )
@@ -170,13 +228,32 @@ export default function WorkoutSessionMode({
 
       {/* Exercises */}
       <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
-        {workout.exercises.map((ex, ei) => (
+        {workout.exercises.map((ex, ei) => {
+          const last = lastSets[ex.name]
+          const suggestion = last && ex.is_primary && last.weight_kg !== null && last.reps !== null
+            ? buildSuggestion(last)
+            : null
+          return (
           <div key={ei} className="bg-card rounded-2xl overflow-hidden">
             {/* Exercise header */}
             <div className="px-4 py-3 border-b border-border flex items-start justify-between gap-3">
               <div>
-                <p className="font-semibold text-sm">{ex.name}</p>
+                <div className="flex items-center gap-2">
+                  <p className="font-semibold text-sm">{ex.name}</p>
+                  {ex.is_primary && (
+                    <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-accent/20 text-accent font-bold uppercase tracking-wider">
+                      Primary
+                    </span>
+                  )}
+                </div>
                 <p className="text-xs text-muted mt-0.5">{ex.sets}×{ex.reps} · {ex.cue}</p>
+                {last && (
+                  <p className="text-[11px] text-muted/80 mt-1 font-num">
+                    Last ({last.date}): {last.weight_kg ?? '?'}kg × {last.reps ?? '?'}
+                    {last.rpe !== null && ` RPE${last.rpe}`}
+                    {suggestion && <span className="text-green ml-1">→ {suggestion}</span>}
+                  </p>
+                )}
               </div>
               <div className="flex gap-1.5 shrink-0 mt-0.5">
                 {ex.youtube && (
@@ -254,11 +331,31 @@ export default function WorkoutSessionMode({
                       )}
                     </button>
                   </div>
+                  {ex.is_primary && (
+                    <div className="col-span-12 flex items-center gap-2 pt-2 -mb-1 border-t border-border/50">
+                      <span className="text-[10px] text-muted uppercase tracking-wider w-8 shrink-0">RPE</span>
+                      <div className="flex gap-1 flex-1">
+                        {[6, 7, 8, 9, 10].map((r) => (
+                          <button
+                            key={r}
+                            onClick={() => updateSet(ex.name, si, 'rpe', s.rpe === String(r) ? '' : String(r))}
+                            aria-pressed={s.rpe === String(r)}
+                            className={`flex-1 py-1 rounded-md text-[11px] font-num font-medium transition-colors ${
+                              s.rpe === String(r) ? 'bg-accent text-white' : 'bg-card text-muted'
+                            }`}
+                          >
+                            {r}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
           </div>
-        ))}
+          )
+        })}
 
         {/* Finish button */}
         <button
@@ -294,4 +391,22 @@ export default function WorkoutSessionMode({
       </Sheet>
     </div>
   )
+}
+
+// Naive RPE-driven progression suggestion for primaries:
+//   last hit RPE ≤ 7 with reps ≥ target → +2.5kg
+//   last hit RPE ≥ 9                    → hold or back off
+//   last hit reps < target              → match weight, keep building
+function buildSuggestion(last: LastTopSet): string {
+  if (last.weight_kg === null || last.reps === null) return ''
+  const w = last.weight_kg
+  const r = last.reps
+  const rpe = last.rpe
+  if (rpe !== null) {
+    if (rpe <= 7 && r >= 5) return `try ${(w + 2.5).toFixed(1)}kg`
+    if (rpe >= 9) return `hold ${w}kg`
+  } else if (r >= 6) {
+    return `try ${(w + 2.5).toFixed(1)}kg`
+  }
+  return `match ${w}kg`
 }

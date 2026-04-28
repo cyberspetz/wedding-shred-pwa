@@ -33,6 +33,7 @@ export interface ExerciseLog {
   set_number: number
   reps: number | null
   weight_kg: number | null
+  rpe: number | null
   duration_sec: number | null
   completed: boolean
   created_at: string
