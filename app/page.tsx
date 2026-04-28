@@ -6,6 +6,7 @@ import BottomNav from '@/components/navigation/BottomNav'
 import ProgressRing from '@/components/ui/ProgressRing'
 import ProgressBar from '@/components/ui/ProgressBar'
 import DailyHabitsCard from '@/components/dashboard/DailyHabitsCard'
+import ReadinessCard from '@/components/dashboard/ReadinessCard'
 import {
   getDaysToWedding,
   getWeightProgress,
@@ -109,6 +110,9 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
+
+        {/* Today's Readiness — Garmin-driven session prescription */}
+        <ReadinessCard />
 
         {/* Today's Workout */}
         <Link href="/workouts">

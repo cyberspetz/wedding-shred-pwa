@@ -132,6 +132,34 @@ create policy "Users can manage own water logs"
 create index water_logs_user_date on water_logs(user_id, date desc);
 
 -- ============================================================
+-- GARMIN METRICS — daily readiness signals (manual entry from watch).
+-- training_readiness 0-100, hrv_status enum, body_battery morning 0-100,
+-- sleep_score 0-100. Drives session-adjustment recommendations per protocol.
+-- ============================================================
+create table if not exists garmin_metrics (
+  id                 uuid primary key default gen_random_uuid(),
+  user_id            uuid references auth.users(id) on delete cascade not null,
+  date               date not null,
+  training_readiness integer check (training_readiness between 0 and 100),
+  hrv_status         text check (hrv_status in ('balanced','unbalanced','low','poor')),
+  body_battery_am    integer check (body_battery_am between 0 and 100),
+  sleep_score        integer check (sleep_score between 0 and 100),
+  notes              text,
+  created_at         timestamptz default now(),
+  updated_at         timestamptz default now(),
+  unique (user_id, date)
+);
+
+alter table garmin_metrics enable row level security;
+
+create policy "Users can manage own garmin metrics"
+  on garmin_metrics for all
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+create index garmin_metrics_user_date on garmin_metrics(user_id, date desc);
+
+-- ============================================================
 -- DAILY HABITS — protein anchors + late-eating toggle
 -- 4 protein slots × ~40g (matches MPS-saturation-per-dose);
 -- ate_after_21 captures the user's specific failure mode (late-evening eating).

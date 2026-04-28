@@ -55,6 +55,21 @@ export interface WaterLog {
   created_at: string
 }
 
+export type HrvStatus = 'balanced' | 'unbalanced' | 'low' | 'poor'
+
+export interface GarminMetrics {
+  id: string
+  user_id: string
+  date: string
+  training_readiness: number | null
+  hrv_status: HrvStatus | null
+  body_battery_am: number | null
+  sleep_score: number | null
+  notes: string | null
+  created_at: string
+  updated_at: string
+}
+
 export interface DailyHabits {
   id: string
   user_id: string
