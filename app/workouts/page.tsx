@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import BottomNav from '@/components/navigation/BottomNav'
+import PeakWeekBanner from '@/components/dashboard/PeakWeekBanner'
 import { WORKOUTS, WEEKLY_SCHEDULE } from '@/lib/workoutData'
 import { getTodayWorkout, getCurrentWeek, getPhase } from '@/lib/utils'
 import type { WorkoutProgram } from '@/types'
@@ -44,6 +45,9 @@ export default function WorkoutsPage() {
       </div>
 
       <div className="flex-1 px-5 pb-nav overflow-y-auto">
+        <div className="mb-4">
+          <PeakWeekBanner />
+        </div>
         {activeTab === 'programs' && (
           <div className="space-y-4">
             {WORKOUTS.map((workout) => {

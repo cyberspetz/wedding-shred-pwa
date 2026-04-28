@@ -8,6 +8,8 @@ import ProgressBar from '@/components/ui/ProgressBar'
 import DailyHabitsCard from '@/components/dashboard/DailyHabitsCard'
 import ReadinessCard from '@/components/dashboard/ReadinessCard'
 import TravelBanner from '@/components/dashboard/TravelBanner'
+import PeakWeekBanner from '@/components/dashboard/PeakWeekBanner'
+import PhaseGateCard from '@/components/dashboard/PhaseGateCard'
 import {
   getDaysToWedding,
   getWeightProgress,
@@ -15,6 +17,9 @@ import {
   getWorkoutLabel,
   getCurrentWeek,
   getPhase,
+  getTodayString,
+  rollingAverage,
+  daysAgoString,
   GOAL_WEIGHT,
   START_WEIGHT,
 } from '@/lib/utils'
@@ -22,8 +27,7 @@ import { supabase } from '@/lib/supabase'
 import type { WeightLog } from '@/types'
 
 export default function Dashboard() {
-  const [latestWeight, setLatestWeight] = useState<WeightLog | null>(null)
-  const [prevWeight, setPrevWeight] = useState<WeightLog | null>(null)
+  const [recentLogs, setRecentLogs] = useState<WeightLog[]>([])
 
   const daysLeft = getDaysToWedding()
   const todayActivity = getTodayWorkout()
@@ -35,26 +39,30 @@ export default function Dashboard() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 
-      const { data: weights } = await supabase
+      const since = daysAgoString(14)
+      const { data } = await supabase
         .from('weight_logs')
         .select('*')
         .eq('user_id', user.id)
+        .gte('date', since)
         .order('date', { ascending: false })
-        .limit(2)
 
-      if (weights && weights.length > 0) {
-        setLatestWeight(weights[0] as WeightLog)
-        if (weights.length > 1) setPrevWeight(weights[1] as WeightLog)
-      }
+      if (data) setRecentLogs(data as WeightLog[])
     }
     load()
   }, [])
 
-  const currentWeight = latestWeight?.weight_kg ?? 86.5
+  const today = getTodayString()
+  const latestWeight = recentLogs[0] ?? null
+  const avg7 = rollingAverage(recentLogs, today, 7)
+  const avg7Prev = rollingAverage(recentLogs, daysAgoString(7), 7)
+  const weeklyDelta = avg7 !== null && avg7Prev !== null ? avg7 - avg7Prev : null
+
+  // Display the smoothed 7-day avg when available — otherwise the latest single
+  // entry, otherwise the configured start. Daily delta is intentionally not
+  // shown: ±0.3kg is water/glycogen/salt noise, not signal.
+  const currentWeight = avg7 ?? latestWeight?.weight_kg ?? START_WEIGHT
   const weightPct = getWeightProgress(currentWeight)
-  const weightDelta = prevWeight ? currentWeight - prevWeight.weight_kg : null
-  const bodyFat = latestWeight?.body_fat_pct ?? 20
-  const smm = latestWeight?.smm_kg ?? 42.3
 
   return (
     <div className="flex flex-col min-h-screen bg-bg">
@@ -73,6 +81,9 @@ export default function Dashboard() {
       </div>
 
       <div className="flex-1 px-5 space-y-4 pb-nav overflow-y-auto">
+        {/* Peak-week / deload lockdown banner — only visible W7-W8 */}
+        <PeakWeekBanner />
+
         {/* Weight + Progress Ring */}
         <div className="bg-card rounded-2xl p-5 flex items-center gap-4">
           <ProgressRing percent={weightPct} size={88} strokeWidth={7} color="#e85d3a">
@@ -84,11 +95,15 @@ export default function Dashboard() {
           <div className="flex-1">
             <div className="flex items-baseline gap-2">
               <span className="font-num text-4xl font-bold">{currentWeight.toFixed(1)}</span>
-              <span className="text-muted text-sm">kg</span>
-              {weightDelta !== null && (
-                <span className={`text-sm font-medium flex items-center gap-0.5 ${weightDelta < 0 ? 'text-green' : 'text-accent'}`}>
-                  {weightDelta < 0 ? '↓' : '↑'}{Math.abs(weightDelta).toFixed(1)}
+              <span className="text-muted text-sm">kg{avg7 !== null ? ' · 7d avg' : ''}</span>
+            </div>
+            <div className="text-muted text-xs mt-1 flex items-center gap-1.5">
+              {weeklyDelta !== null ? (
+                <span className={`font-medium ${weeklyDelta < 0 ? 'text-green' : 'text-accent'}`}>
+                  {weeklyDelta < 0 ? '↓' : '↑'}{Math.abs(weeklyDelta).toFixed(1)} kg vs last week
                 </span>
+              ) : (
+                <span className="text-muted">Need 2 weekly weigh-ins for trend</span>
               )}
             </div>
             <div className="text-muted text-xs mt-1">
@@ -139,17 +154,14 @@ export default function Dashboard() {
           </div>
         </Link>
 
-        {/* Body Composition Stats */}
-        <div className="grid grid-cols-2 gap-3">
-          <StatCard label="Body Fat" value={`${bodyFat}%`} sub="Target: 15–17%" color="#e85d3a" />
-          <StatCard label="Muscle Mass" value={`${smm} kg`} sub="SMM (InBody)" color="#3ecf8e" />
-        </div>
-
         {/* Daily habits — protein anchors + 21:00 cutoff */}
         <DailyHabitsCard />
 
         {/* Weekly Schedule */}
         <WeeklyMiniCalendar />
+
+        {/* Phase transition gate — only renders during W3 or W6 */}
+        <PhaseGateCard />
 
         {/* Phase Info */}
         <div className="bg-card rounded-2xl p-5 border-l-4 border-accent">
@@ -183,23 +195,13 @@ function getGreeting() {
   return 'evening'
 }
 
-function StatCard({ label, value, sub, color }: { label: string; value: string; sub: string; color: string }) {
-  return (
-    <div className="bg-card rounded-2xl p-4">
-      <p className="text-xs text-muted mb-1">{label}</p>
-      <p className="font-num text-2xl font-bold" style={{ color }}>{value}</p>
-      <p className="text-[11px] text-muted mt-1">{sub}</p>
-    </div>
-  )
-}
-
 function ActivityIcon({ type }: { type: string }) {
   if (type === 'badminton') return <span className="text-2xl">🏸</span>
   if (type === 'rest') return <span className="text-2xl">🚶</span>
   return (
     <div
       className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold font-num text-lg"
-      style={{ backgroundColor: type === 'B' ? '#3ecf8e' : type === 'C' ? '#f5c542' : '#e85d3a' }}
+      style={{ backgroundColor: type === 'B' ? '#3ecf8e' : '#e85d3a' }}
     >
       {type}
     </div>

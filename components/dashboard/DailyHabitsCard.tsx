@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import { getTodayString, getTodayWorkout } from '@/lib/utils'
+import { getTodayString, getTodayWorkout, getCurrentWeek, getPeakWeekStatus, SAUNA_LOCK_DATE } from '@/lib/utils'
 import type { DailyHabits } from '@/types'
 
 const SLOTS = [
@@ -21,6 +21,7 @@ export default function DailyHabitsCard() {
   const today = getTodayString()
   const todayActivity = getTodayWorkout()
   const isGymDay = todayActivity === 'A' || todayActivity === 'B'
+  const peak = getPeakWeekStatus(getCurrentWeek(), today)
 
   const load = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser()
@@ -48,6 +49,7 @@ export default function DailyHabitsCard() {
       protein_snack: habits?.protein_snack ?? false,
       protein_dinner: habits?.protein_dinner ?? false,
       ate_after_21: habits?.ate_after_21 ?? null,
+      sauna_pm: habits?.sauna_pm ?? false,
       created_at: habits?.created_at ?? new Date().toISOString(),
       updated_at: new Date().toISOString(),
       ...next,
@@ -64,6 +66,10 @@ export default function DailyHabitsCard() {
   function setCutoff(ateAfter: boolean) {
     const current = habits?.ate_after_21
     persist({ ate_after_21: current === ateAfter ? null : ateAfter })
+  }
+
+  function toggleSauna() {
+    persist({ sauna_pm: !(habits?.sauna_pm ?? false) })
   }
 
   const proteinCount = SLOTS.filter((s) => habits?.[s.key]).length
@@ -139,6 +145,36 @@ export default function DailyHabitsCard() {
           </div>
         </div>
       )}
+
+      {/* Sauna PM toggle — locked from Jun 17 (cold/flu risk pre-event) */}
+      <div>
+        <button
+          onClick={peak.saunaLocked ? undefined : toggleSauna}
+          disabled={peak.saunaLocked}
+          aria-pressed={habits?.sauna_pm ?? false}
+          className={`w-full flex items-center justify-between py-2.5 px-4 rounded-xl text-xs font-medium transition-colors ${
+            peak.saunaLocked
+              ? 'bg-bg text-muted opacity-50 cursor-not-allowed'
+              : habits?.sauna_pm
+              ? 'bg-yellow text-bg'
+              : 'bg-bg text-muted hover:bg-card-hover'
+          }`}
+        >
+          <span>♨️ Sauna PM today</span>
+          <span>
+            {peak.saunaLocked
+              ? `🔒 locked from ${SAUNA_LOCK_DATE.slice(5)}`
+              : habits?.sauna_pm
+              ? 'logged'
+              : 'tap to log'}
+          </span>
+        </button>
+        {!peak.saunaLocked && isGymDay && habits?.sauna_pm && (
+          <p className="text-[11px] text-accent mt-1.5 leading-tight">
+            ⚠️ Sauna same evening as gym stacks cortisol and interferes with recovery — protocol allows Sun PM and Tue PM only.
+          </p>
+        )}
+      </div>
     </div>
   )
 }

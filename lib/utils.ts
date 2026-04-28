@@ -86,6 +86,53 @@ export function getPhase(weekNumber: number): { name: string; label: string; des
 // Week 1 starts April 26 2026 — 8 weeks back from wedding on June 20
 export const PROTOCOL_START = new Date('2026-04-26T00:00:00+07:00')
 
+// Rolling average of weight (or any numeric field) over a window ending on endDateStr.
+// Returns null when no data points fall in the window — caller decides on a fallback.
+export function rollingAverage(
+  logs: Array<{ date: string; weight_kg: number }>,
+  endDateStr: string,
+  days = 7,
+): number | null {
+  const end = new Date(endDateStr + 'T00:00:00')
+  const start = new Date(end)
+  start.setDate(start.getDate() - days + 1)
+  const startStr = start.toISOString().slice(0, 10)
+  const inRange = logs.filter((l) => l.date >= startStr && l.date <= endDateStr)
+  if (inRange.length === 0) return null
+  return inRange.reduce((s, l) => s + l.weight_kg, 0) / inRange.length
+}
+
+// Returns the date string `daysAgo` calendar days before today (timezone-aware).
+export function daysAgoString(daysAgo: number): string {
+  const now = toZonedTime(new Date(), TZ)
+  const d = new Date(now)
+  d.setDate(d.getDate() - daysAgo)
+  return format(d, 'yyyy-MM-dd')
+}
+
+// Peak-week lockdown rules. Last hard gym session is Mon Jun 15 (W8 start);
+// sauna is locked from Jun 17 (cold/flu risk pre-event). After the last hard
+// date the user should switch to mobility + holds only.
+export const LAST_HARD_DATE = '2026-06-15'
+export const SAUNA_LOCK_DATE = '2026-06-17'
+
+export interface PeakWeekStatus {
+  inDeload: boolean    // Week 7 — recovery week
+  inPeak: boolean      // Week 8 — taper toward wedding
+  lastHardPassed: boolean
+  saunaLocked: boolean
+}
+
+export function getPeakWeekStatus(weekNumber: number, todayStr?: string): PeakWeekStatus {
+  const today = todayStr ?? getTodayString()
+  return {
+    inDeload: weekNumber === 7,
+    inPeak: weekNumber === 8,
+    lastHardPassed: today > LAST_HARD_DATE,
+    saunaLocked: today >= SAUNA_LOCK_DATE,
+  }
+}
+
 export function getCurrentWeek(): number {
   const diff = differenceInDays(new Date(), PROTOCOL_START)
   return Math.max(1, Math.min(8, Math.floor(diff / 7) + 1))

@@ -92,6 +92,7 @@ export interface DailyHabits {
   protein_snack: boolean
   protein_dinner: boolean
   ate_after_21: boolean | null
+  sauna_pm: boolean
   created_at: string
   updated_at: string
 }

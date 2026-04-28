@@ -205,10 +205,14 @@ create table if not exists daily_habits (
   protein_snack      boolean not null default false,
   protein_dinner     boolean not null default false,
   ate_after_21       boolean,
+  sauna_pm           boolean not null default false,
   created_at         timestamptz default now(),
   updated_at         timestamptz default now(),
   unique (user_id, date)
 );
+
+-- Adds sauna toggle for existing installs (idempotent).
+alter table daily_habits add column if not exists sauna_pm boolean not null default false;
 
 alter table daily_habits enable row level security;
 
