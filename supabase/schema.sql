@@ -132,6 +132,34 @@ create policy "Users can manage own water logs"
 create index water_logs_user_date on water_logs(user_id, date desc);
 
 -- ============================================================
+-- DAILY HABITS — protein anchors + late-eating toggle
+-- 4 protein slots × ~40g (matches MPS-saturation-per-dose);
+-- ate_after_21 captures the user's specific failure mode (late-evening eating).
+-- ============================================================
+create table if not exists daily_habits (
+  id                 uuid primary key default gen_random_uuid(),
+  user_id            uuid references auth.users(id) on delete cascade not null,
+  date               date not null,
+  protein_breakfast  boolean not null default false,
+  protein_lunch      boolean not null default false,
+  protein_snack      boolean not null default false,
+  protein_dinner     boolean not null default false,
+  ate_after_21       boolean,
+  created_at         timestamptz default now(),
+  updated_at         timestamptz default now(),
+  unique (user_id, date)
+);
+
+alter table daily_habits enable row level security;
+
+create policy "Users can manage own daily habits"
+  on daily_habits for all
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+create index daily_habits_user_date on daily_habits(user_id, date desc);
+
+-- ============================================================
 -- PROGRESS PHOTOS
 -- ============================================================
 create table if not exists progress_photos (

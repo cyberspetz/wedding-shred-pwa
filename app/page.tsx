@@ -5,6 +5,7 @@ import Link from 'next/link'
 import BottomNav from '@/components/navigation/BottomNav'
 import ProgressRing from '@/components/ui/ProgressRing'
 import ProgressBar from '@/components/ui/ProgressBar'
+import DailyHabitsCard from '@/components/dashboard/DailyHabitsCard'
 import {
   getDaysToWedding,
   getWeightProgress,
@@ -12,21 +13,15 @@ import {
   getWorkoutLabel,
   getCurrentWeek,
   getPhase,
-  getTodayString,
   GOAL_WEIGHT,
   START_WEIGHT,
-  CALORIE_TARGET,
-  PROTEIN_TARGET,
-  WATER_TARGET_ML,
 } from '@/lib/utils'
 import { supabase } from '@/lib/supabase'
-import type { WeightLog, DailyNutrition } from '@/types'
+import type { WeightLog } from '@/types'
 
 export default function Dashboard() {
   const [latestWeight, setLatestWeight] = useState<WeightLog | null>(null)
   const [prevWeight, setPrevWeight] = useState<WeightLog | null>(null)
-  const [todayNutrition, setTodayNutrition] = useState<DailyNutrition>({ calories: 0, protein_g: 0, water_ml: 0 })
-  const [loading, setLoading] = useState(true)
 
   const daysLeft = getDaysToWedding()
   const todayActivity = getTodayWorkout()
@@ -36,11 +31,8 @@ export default function Dashboard() {
   useEffect(() => {
     async function load() {
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { setLoading(false); return }
+      if (!user) return
 
-      const today = getTodayString()
-
-      // Latest two weight logs
       const { data: weights } = await supabase
         .from('weight_logs')
         .select('*')
@@ -52,30 +44,6 @@ export default function Dashboard() {
         setLatestWeight(weights[0] as WeightLog)
         if (weights.length > 1) setPrevWeight(weights[1] as WeightLog)
       }
-
-      // Today's nutrition
-      const { data: nutrition } = await supabase
-        .from('nutrition_logs')
-        .select('calories, protein_g')
-        .eq('user_id', user.id)
-        .eq('date', today)
-
-      const { data: water } = await supabase
-        .from('water_logs')
-        .select('amount_ml')
-        .eq('user_id', user.id)
-        .eq('date', today)
-
-      if (nutrition) {
-        const totals = nutrition.reduce(
-          (acc, r) => ({ calories: acc.calories + r.calories, protein_g: acc.protein_g + r.protein_g }),
-          { calories: 0, protein_g: 0 }
-        )
-        const waterTotal = water?.reduce((sum, r) => sum + r.amount_ml, 0) ?? 0
-        setTodayNutrition({ ...totals, water_ml: waterTotal })
-      }
-
-      setLoading(false)
     }
     load()
   }, [])
@@ -169,37 +137,8 @@ export default function Dashboard() {
           <StatCard label="Muscle Mass" value={`${smm} kg`} sub="SMM (InBody)" color="#3ecf8e" />
         </div>
 
-        {/* Nutrition Today */}
-        <div className="bg-card rounded-2xl p-5 space-y-3">
-          <div className="flex items-center justify-between mb-1">
-            <p className="text-sm font-semibold">Today's Nutrition</p>
-            <Link href="/log" className="text-xs text-accent">Log meal →</Link>
-          </div>
-          <ProgressBar
-            value={todayNutrition.calories}
-            max={CALORIE_TARGET}
-            color="#e85d3a"
-            label="Calories"
-            unit=" kcal"
-            height="h-2"
-          />
-          <ProgressBar
-            value={todayNutrition.protein_g}
-            max={PROTEIN_TARGET}
-            color="#3ecf8e"
-            label="Protein"
-            unit="g"
-            height="h-2"
-          />
-          <ProgressBar
-            value={Math.round(todayNutrition.water_ml / 1000 * 10) / 10}
-            max={3}
-            color="#60a5fa"
-            label="Water"
-            unit="L"
-            height="h-2"
-          />
-        </div>
+        {/* Daily habits — protein anchors + 21:00 cutoff */}
+        <DailyHabitsCard />
 
         {/* Weekly Schedule */}
         <WeeklyMiniCalendar />

@@ -55,6 +55,21 @@ export interface WaterLog {
   created_at: string
 }
 
+export interface DailyHabits {
+  id: string
+  user_id: string
+  date: string
+  protein_breakfast: boolean
+  protein_lunch: boolean
+  protein_snack: boolean
+  protein_dinner: boolean
+  ate_after_21: boolean | null
+  created_at: string
+  updated_at: string
+}
+
+export type ProteinSlot = 'breakfast' | 'lunch' | 'snack' | 'dinner'
+
 export interface ProgressPhoto {
   id: string
   user_id: string
