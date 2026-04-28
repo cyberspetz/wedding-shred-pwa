@@ -20,18 +20,20 @@ import {
   getTodayString,
   rollingAverage,
   daysAgoString,
-  GOAL_WEIGHT,
-  START_WEIGHT,
 } from '@/lib/utils'
+import { useUserSettings } from '@/lib/useUserSettings'
 import { supabase } from '@/lib/supabase'
 import type { WeightLog } from '@/types'
 
 export default function Dashboard() {
   const [recentLogs, setRecentLogs] = useState<WeightLog[]>([])
+  const { settings } = useUserSettings()
+  const GOAL_WEIGHT_VAL = settings.goal_weight_kg
+  const START_WEIGHT_VAL = settings.start_weight_kg
 
-  const daysLeft = getDaysToWedding()
+  const daysLeft = getDaysToWedding(settings.wedding_date)
   const todayActivity = getTodayWorkout()
-  const currentWeek = getCurrentWeek()
+  const currentWeek = getCurrentWeek(settings.protocol_start)
   const phase = getPhase(currentWeek)
 
   useEffect(() => {
@@ -61,8 +63,8 @@ export default function Dashboard() {
   // Display the smoothed 7-day avg when available — otherwise the latest single
   // entry, otherwise the configured start. Daily delta is intentionally not
   // shown: ±0.3kg is water/glycogen/salt noise, not signal.
-  const currentWeight = avg7 ?? latestWeight?.weight_kg ?? START_WEIGHT
-  const weightPct = getWeightProgress(currentWeight)
+  const currentWeight = avg7 ?? latestWeight?.weight_kg ?? START_WEIGHT_VAL
+  const weightPct = getWeightProgress(currentWeight, { start: START_WEIGHT_VAL, goal: GOAL_WEIGHT_VAL })
 
   return (
     <div className="flex flex-col min-h-screen bg-bg">
@@ -107,21 +109,21 @@ export default function Dashboard() {
               )}
             </div>
             <div className="text-muted text-xs mt-1">
-              Goal: <span className="text-white font-num font-medium">{GOAL_WEIGHT} kg</span>
+              Goal: <span className="text-white font-num font-medium">{GOAL_WEIGHT_VAL} kg</span>
               <span className="mx-1.5">·</span>
-              <span className="font-num">{(currentWeight - GOAL_WEIGHT).toFixed(1)} kg to go</span>
+              <span className="font-num">{(currentWeight - GOAL_WEIGHT_VAL).toFixed(1)} kg to go</span>
             </div>
             <div className="mt-3">
               <ProgressBar
-                value={parseFloat((START_WEIGHT - currentWeight).toFixed(1))}
-                max={parseFloat((START_WEIGHT - GOAL_WEIGHT).toFixed(1))}
+                value={parseFloat((START_WEIGHT_VAL - currentWeight).toFixed(1))}
+                max={parseFloat((START_WEIGHT_VAL - GOAL_WEIGHT_VAL).toFixed(1))}
                 color="#e85d3a"
                 showValue={false}
                 height="h-1.5"
               />
               <div className="flex justify-between mt-1 text-[10px] text-muted font-num">
-                <span>{START_WEIGHT} kg</span>
-                <span>{GOAL_WEIGHT} kg</span>
+                <span>{START_WEIGHT_VAL} kg</span>
+                <span>{GOAL_WEIGHT_VAL} kg</span>
               </div>
             </div>
           </div>
@@ -177,8 +179,8 @@ export default function Dashboard() {
             <span className="text-yellow">wedding day</span>
           </p>
           <p className="text-xs text-muted mt-2">
-            {currentWeight.toFixed(1)} kg → {GOAL_WEIGHT} kg ·&nbsp;
-            <span className="text-white font-num">{(currentWeight - GOAL_WEIGHT).toFixed(1)} kg</span> to lose
+            {currentWeight.toFixed(1)} kg → {GOAL_WEIGHT_VAL} kg ·&nbsp;
+            <span className="text-white font-num">{(currentWeight - GOAL_WEIGHT_VAL).toFixed(1)} kg</span> to lose
           </p>
         </div>
       </div>

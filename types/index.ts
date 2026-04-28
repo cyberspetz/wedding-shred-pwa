@@ -58,6 +58,16 @@ export interface WaterLog {
   created_at: string
 }
 
+export interface UserSettings {
+  user_id: string
+  goal_weight_kg: number | null
+  start_weight_kg: number | null
+  wedding_date: string | null
+  protocol_start: string | null
+  protein_target_g: number | null
+  updated_at: string
+}
+
 export interface TravelPeriod {
   id: string
   user_id: string

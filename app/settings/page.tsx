@@ -1,39 +1,38 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import BottomNav from '@/components/navigation/BottomNav'
+import Sheet from '@/components/ui/Sheet'
 import { supabase } from '@/lib/supabase'
-import {
-  getDaysToWedding,
-  getCurrentWeek,
-  getPhase,
-  GOAL_WEIGHT,
-  START_WEIGHT,
-  PROTEIN_TARGET,
-} from '@/lib/utils'
-
-const STATS = [
-  { label: 'Height', value: '191 cm' },
-  { label: 'Start Weight', value: `${START_WEIGHT} kg` },
-  { label: 'Goal Weight', value: `${GOAL_WEIGHT} kg` },
-  { label: 'Target Body Fat', value: '14–15%' },
-  { label: 'Daily Protein', value: `${PROTEIN_TARGET}g (4 × ~40g)` },
-  { label: 'Timezone', value: 'Asia/Ho_Chi_Minh (ICT)' },
-  { label: 'Wedding Date', value: 'June 20, 2026' },
-]
+import { getDaysToWedding, getCurrentWeek, getPhase } from '@/lib/utils'
+import { useUserSettings, type ResolvedSettings } from '@/lib/useUserSettings'
 
 export default function SettingsPage() {
   const [user, setUser] = useState<{ email: string | undefined } | null>(null)
   const [email, setEmail] = useState('')
   const [sending, setSending] = useState(false)
   const [sent, setSent] = useState(false)
-  const [showInstall, setShowInstall] = useState(false)
+  const [showEditProfile, setShowEditProfile] = useState(false)
   const router = useRouter()
 
   const week = getCurrentWeek()
   const phase = getPhase(week)
   const daysLeft = getDaysToWedding()
+  const { settings, save: saveSettings } = useUserSettings()
+  const [form, setForm] = useState<ResolvedSettings>(settings)
+  useEffect(() => { setForm(settings) }, [settings])
+
+  const STATS = [
+    { label: 'Height', value: '191 cm' },
+    { label: 'Start Weight', value: `${settings.start_weight_kg} kg` },
+    { label: 'Goal Weight', value: `${settings.goal_weight_kg} kg` },
+    { label: 'Target Body Fat', value: '14–15%' },
+    { label: 'Daily Protein', value: `${settings.protein_target_g}g (4 × ~40g)` },
+    { label: 'Timezone', value: 'Asia/Ho_Chi_Minh (ICT)' },
+    { label: 'Wedding Date', value: settings.wedding_date },
+    { label: 'Protocol Start', value: settings.protocol_start },
+  ]
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -154,7 +153,15 @@ export default function SettingsPage() {
 
         {/* Personal stats */}
         <div className="bg-card rounded-2xl p-5">
-          <p className="text-xs text-muted uppercase tracking-wider mb-3">Your Profile</p>
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-xs text-muted uppercase tracking-wider">Your Profile</p>
+            <button
+              onClick={() => setShowEditProfile(true)}
+              className="text-xs text-accent"
+            >
+              Edit →
+            </button>
+          </div>
           <div className="space-y-2.5">
             {STATS.map((s) => (
               <div key={s.label} className="flex items-center justify-between">
@@ -164,6 +171,67 @@ export default function SettingsPage() {
             ))}
           </div>
         </div>
+
+        {/* Edit Profile Sheet */}
+        <Sheet open={showEditProfile} onClose={() => setShowEditProfile(false)} title="Edit Profile">
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs text-muted mb-1.5 block">Goal weight (kg)</label>
+                <input
+                  type="number"
+                  step="0.1"
+                  value={form.goal_weight_kg}
+                  onChange={(e) => setForm((f) => ({ ...f, goal_weight_kg: parseFloat(e.target.value) || 0 }))}
+                  className="w-full bg-bg border border-border rounded-xl px-4 py-3 text-sm font-num outline-none focus:border-accent"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-muted mb-1.5 block">Start weight (kg)</label>
+                <input
+                  type="number"
+                  step="0.1"
+                  value={form.start_weight_kg}
+                  onChange={(e) => setForm((f) => ({ ...f, start_weight_kg: parseFloat(e.target.value) || 0 }))}
+                  className="w-full bg-bg border border-border rounded-xl px-4 py-3 text-sm font-num outline-none focus:border-accent"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-muted mb-1.5 block">Protocol start</label>
+                <input
+                  type="date"
+                  value={form.protocol_start}
+                  onChange={(e) => setForm((f) => ({ ...f, protocol_start: e.target.value }))}
+                  className="w-full bg-bg border border-border rounded-xl px-4 py-3 text-sm font-num outline-none focus:border-accent"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-muted mb-1.5 block">Wedding date</label>
+                <input
+                  type="date"
+                  value={form.wedding_date}
+                  onChange={(e) => setForm((f) => ({ ...f, wedding_date: e.target.value }))}
+                  className="w-full bg-bg border border-border rounded-xl px-4 py-3 text-sm font-num outline-none focus:border-accent"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="text-xs text-muted mb-1.5 block">Daily protein (g)</label>
+              <input
+                type="number"
+                value={form.protein_target_g}
+                onChange={(e) => setForm((f) => ({ ...f, protein_target_g: parseInt(e.target.value) || 0 }))}
+                className="w-full bg-bg border border-border rounded-xl px-4 py-3 text-sm font-num outline-none focus:border-accent"
+              />
+            </div>
+            <button
+              onClick={async () => { await saveSettings(form); setShowEditProfile(false) }}
+              className="w-full py-4 rounded-2xl bg-accent text-white font-semibold"
+            >
+              Save
+            </button>
+          </div>
+        </Sheet>
 
         {/* App version */}
         <div className="text-center py-4">

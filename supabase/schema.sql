@@ -152,6 +152,27 @@ create policy "Users can manage own water logs"
 create index water_logs_user_date on water_logs(user_id, date desc);
 
 -- ============================================================
+-- USER SETTINGS — per-user overrides for goal weight, dates, targets.
+-- Falls back to compiled defaults in lib/utils.ts when row missing.
+-- ============================================================
+create table if not exists user_settings (
+  user_id          uuid primary key references auth.users(id) on delete cascade,
+  goal_weight_kg   numeric(5,2),
+  start_weight_kg  numeric(5,2),
+  wedding_date     date,
+  protocol_start   date,
+  protein_target_g integer check (protein_target_g between 60 and 300),
+  updated_at       timestamptz default now()
+);
+
+alter table user_settings enable row level security;
+
+create policy "Users can manage own settings"
+  on user_settings for all
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+-- ============================================================
 -- TRAVEL PERIODS — date ranges that trigger travel mode.
 -- Suspends weigh-in cadence, switches gym sessions to bodyweight fallback,
 -- shows restaurant-order copy. Inclusive on both dates.

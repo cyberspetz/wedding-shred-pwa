@@ -15,14 +15,19 @@ export const PROTEIN_TARGET = 160 // 4 meals × ~40g per protocol (MPS-saturatio
 export const WATER_TARGET_ML = 3000
 export const TZ = 'Asia/Ho_Chi_Minh'
 
-export function getDaysToWedding(): number {
-  const now = new Date()
-  return Math.max(0, differenceInDays(WEDDING_DATE, startOfDay(now)))
+export function getDaysToWedding(weddingDateOverride?: Date | string): number {
+  const target = weddingDateOverride
+    ? new Date(typeof weddingDateOverride === 'string' ? `${weddingDateOverride}T00:00:00+07:00` : weddingDateOverride)
+    : WEDDING_DATE
+  return Math.max(0, differenceInDays(target, startOfDay(new Date())))
 }
 
-export function getWeightProgress(currentWeight: number): number {
-  const lost = START_WEIGHT - currentWeight
-  const tolose = START_WEIGHT - GOAL_WEIGHT
+export function getWeightProgress(currentWeight: number, opts?: { start?: number; goal?: number }): number {
+  const start = opts?.start ?? START_WEIGHT
+  const goal = opts?.goal ?? GOAL_WEIGHT
+  const lost = start - currentWeight
+  const tolose = start - goal
+  if (tolose <= 0) return 0
   return Math.min(100, Math.max(0, (lost / tolose) * 100))
 }
 
@@ -133,7 +138,10 @@ export function getPeakWeekStatus(weekNumber: number, todayStr?: string): PeakWe
   }
 }
 
-export function getCurrentWeek(): number {
-  const diff = differenceInDays(new Date(), PROTOCOL_START)
+export function getCurrentWeek(protocolStartOverride?: Date | string): number {
+  const start = protocolStartOverride
+    ? new Date(typeof protocolStartOverride === 'string' ? `${protocolStartOverride}T00:00:00+07:00` : protocolStartOverride)
+    : PROTOCOL_START
+  const diff = differenceInDays(new Date(), start)
   return Math.max(1, Math.min(8, Math.floor(diff / 7) + 1))
 }
