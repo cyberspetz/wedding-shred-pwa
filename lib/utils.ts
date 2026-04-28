@@ -61,15 +61,32 @@ export function getWorkoutLabel(type: ScheduledActivity): string {
 }
 
 export function getPhase(weekNumber: number): { name: string; label: string; description: string } {
-  if (weekNumber <= 3) return { name: 'Shu', label: 'Phase 1 — Shu', description: 'Light weights, learn form. 2 gym sessions/week.' }
-  if (weekNumber <= 6) return { name: 'Ha', label: 'Phase 2 — Ha', description: '+10-20% weight, add Workout C. 3 sessions/week, rest 60 sec.' }
-  return { name: 'Peak', label: 'Phase 3 — Peak', description: 'Superset exercises. Rest 45-60 sec. Maximum intensity.' }
+  if (weekNumber <= 3) return {
+    name: 'Shu',
+    label: 'Phase 1 — Shu',
+    description: 'Foundation. Primaries 4×5 RPE 7. Strict adherence — learn the movement, build volume.',
+  }
+  if (weekNumber <= 6) return {
+    name: 'Ha',
+    label: 'Phase 2 — Ha',
+    description: 'Intensification. Primaries 4×4 RPE 8. Read Garmin signals — adjust ±5% on the day.',
+  }
+  if (weekNumber === 7) return {
+    name: 'Deload',
+    label: 'Phase 3 — Deload',
+    description: '−30% volume, all RPE −1. No new exercises, no PR attempts. Recovery week.',
+  }
+  return {
+    name: 'Taper',
+    label: 'Phase 3 — Peak Taper',
+    description: 'Last hard session Mon Jun 15. After: mobility, holds. No sauna from Jun 17. Walk in fresh.',
+  }
 }
 
-// Week 1 starts March 30 2026
+// Week 1 starts April 26 2026 — 8 weeks back from wedding on June 20
+export const PROTOCOL_START = new Date('2026-04-26T00:00:00+07:00')
+
 export function getCurrentWeek(): number {
-  const start = new Date('2026-03-30T00:00:00+07:00')
-  const now = new Date()
-  const diff = differenceInDays(now, start)
+  const diff = differenceInDays(new Date(), PROTOCOL_START)
   return Math.max(1, Math.min(8, Math.floor(diff / 7) + 1))
 }
