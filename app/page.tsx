@@ -7,6 +7,7 @@ import ProgressRing from '@/components/ui/ProgressRing'
 import ProgressBar from '@/components/ui/ProgressBar'
 import DailyHabitsCard from '@/components/dashboard/DailyHabitsCard'
 import ReadinessCard from '@/components/dashboard/ReadinessCard'
+import TravelBanner from '@/components/dashboard/TravelBanner'
 import {
   getDaysToWedding,
   getWeightProgress,
@@ -110,6 +111,9 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
+
+        {/* Travel mode — auto-activates when current date in a travel period */}
+        <TravelBanner />
 
         {/* Today's Readiness — Garmin-driven session prescription */}
         <ReadinessCard />

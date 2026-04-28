@@ -132,6 +132,32 @@ create policy "Users can manage own water logs"
 create index water_logs_user_date on water_logs(user_id, date desc);
 
 -- ============================================================
+-- TRAVEL PERIODS — date ranges that trigger travel mode.
+-- Suspends weigh-in cadence, switches gym sessions to bodyweight fallback,
+-- shows restaurant-order copy. Inclusive on both dates.
+-- ============================================================
+create table if not exists travel_periods (
+  id          uuid primary key default gen_random_uuid(),
+  user_id     uuid references auth.users(id) on delete cascade not null,
+  start_date  date not null,
+  end_date    date not null,
+  label       text,
+  notes       text,
+  created_at  timestamptz default now(),
+  updated_at  timestamptz default now(),
+  check (end_date >= start_date)
+);
+
+alter table travel_periods enable row level security;
+
+create policy "Users can manage own travel periods"
+  on travel_periods for all
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+create index travel_periods_user_dates on travel_periods(user_id, start_date, end_date);
+
+-- ============================================================
 -- GARMIN METRICS — daily readiness signals (manual entry from watch).
 -- training_readiness 0-100, hrv_status enum, body_battery morning 0-100,
 -- sleep_score 0-100. Drives session-adjustment recommendations per protocol.
