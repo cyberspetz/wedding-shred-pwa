@@ -1,0 +1,195 @@
+import type { WorkoutProgram, MealTemplate } from '@/types'
+
+export const WORKOUTS: WorkoutProgram[] = [
+  {
+    id: 'A',
+    name: 'Workout A',
+    subtitle: 'Push + Core',
+    rest: '60–90 sec between sets',
+    color: '#e85d3a',
+    exercises: [
+      {
+        name: 'Goblet Squat',
+        sets: 3,
+        reps: '12',
+        cue: 'Hold dumbbell at chest. Full depth.',
+        youtube: 'https://www.youtube.com/results?search_query=goblet+squat+proper+form+tutorial',
+        musclewiki: 'https://musclewiki.com/exercise/dumbbell-goblet-squat',
+      },
+      {
+        name: 'Dumbbell Bench Press',
+        sets: 3,
+        reps: '10',
+        cue: 'Moderate weight. 3 sec negative.',
+        youtube: 'https://www.youtube.com/results?search_query=dumbbell+bench+press+proper+form',
+        musclewiki: 'https://musclewiki.com/exercise/dumbbell-bench-press',
+      },
+      {
+        name: 'Standing Overhead Press',
+        sets: 3,
+        reps: '10',
+        cue: 'Dumbbells or barbell. Brace core, no arching.',
+        youtube: 'https://www.youtube.com/results?search_query=standing+dumbbell+overhead+press+form',
+        musclewiki: 'https://musclewiki.com/exercise/dumbbell-standing-overhead-press',
+      },
+      {
+        name: 'Plank',
+        sets: 3,
+        reps: '45 sec',
+        cue: 'Squeeze glutes, belly button to spine.',
+        youtube: 'https://www.youtube.com/results?search_query=plank+proper+form+common+mistakes',
+      },
+      {
+        name: 'Dead Bug',
+        sets: 3,
+        reps: '10 each side',
+        cue: 'Slow, lower back glued to floor. #1 belly exercise.',
+        youtube: 'https://www.youtube.com/results?search_query=dead+bug+exercise+proper+form+core',
+      },
+    ],
+  },
+  {
+    id: 'B',
+    name: 'Workout B',
+    subtitle: 'Pull + Core',
+    rest: '60–90 sec between sets',
+    color: '#3ecf8e',
+    exercises: [
+      {
+        name: 'Romanian Deadlift',
+        sets: 3,
+        reps: '10',
+        cue: 'Dumbbells or barbell. Hinge at hips, feel hamstrings.',
+        youtube: 'https://www.youtube.com/results?search_query=romanian+deadlift+dumbbell+form+tutorial',
+        musclewiki: 'https://musclewiki.com/exercise/dumbbell-romanian-deadlift',
+      },
+      {
+        name: 'Bent-Over Row',
+        sets: 3,
+        reps: '10',
+        cue: 'Squeeze shoulder blades at top.',
+        youtube: 'https://www.youtube.com/results?search_query=bent+over+dumbbell+row+proper+form',
+        musclewiki: 'https://musclewiki.com/exercise/dumbbell-row-bilateral',
+      },
+      {
+        name: 'Lat Pulldown',
+        sets: 3,
+        reps: '12',
+        cue: 'Wide grip, pull to upper chest.',
+        youtube: 'https://www.youtube.com/results?search_query=lat+pulldown+proper+form+technique',
+        musclewiki: 'https://musclewiki.com/exercise/cable-lat-pulldown',
+      },
+      {
+        name: 'Pallof Press',
+        sets: 3,
+        reps: '10 each side',
+        cue: 'Cable or band, resist rotation.',
+        youtube: 'https://www.youtube.com/results?search_query=pallof+press+cable+form+tutorial',
+        musclewiki: 'https://musclewiki.com/exercise/cable-pallof-press',
+      },
+      {
+        name: 'Hanging Knee Raise',
+        sets: 3,
+        reps: '12',
+        cue: 'Curl pelvis up. Alt: lying leg raises.',
+        youtube: 'https://www.youtube.com/results?search_query=hanging+knee+raise+proper+form',
+      },
+    ],
+  },
+  {
+    id: 'C',
+    name: 'Workout C',
+    subtitle: 'Full Body + Core',
+    rest: '45–60 sec between sets',
+    color: '#f5c542',
+    exercises: [
+      {
+        name: 'Dumbbell Thrusters',
+        sets: 3,
+        reps: '12',
+        cue: 'Squat to press in one motion.',
+        youtube: 'https://www.youtube.com/results?search_query=dumbbell+thruster+exercise+form',
+      },
+      {
+        name: 'Dumbbell Renegade Row',
+        sets: 3,
+        reps: '8 each side',
+        cue: 'Plank position, row one arm.',
+        youtube: 'https://www.youtube.com/results?search_query=renegade+row+dumbbell+form+tutorial',
+      },
+      {
+        name: 'Walking Lunges',
+        sets: 3,
+        reps: '10 each leg',
+        cue: 'Bodyweight or light dumbbells.',
+        youtube: 'https://www.youtube.com/results?search_query=walking+lunges+proper+form',
+      },
+      {
+        name: 'Cable Woodchop',
+        sets: 3,
+        reps: '10 each side',
+        cue: 'Rotate through core, high-to-low.',
+        youtube: 'https://www.youtube.com/results?search_query=cable+woodchop+high+to+low+form',
+        musclewiki: 'https://musclewiki.com/exercise/cable-standing-high-to-low-wood-chopper',
+      },
+      {
+        name: 'Plank to Alternating Toe Touch',
+        sets: 3,
+        reps: '8 each side',
+        cue: 'Pike hips, touch opposite foot.',
+        youtube: 'https://www.youtube.com/results?search_query=plank+toe+touch+exercise+core',
+      },
+    ],
+  },
+]
+
+export const MEAL_TEMPLATES: MealTemplate[] = [
+  {
+    label: 'Eggs + Avocado Toast + Coffee',
+    meal_type: 'breakfast',
+    description: '3–4 eggs + avocado toast (1 slice) + coffee',
+    calories: 450,
+    protein_g: 30,
+  },
+  {
+    label: 'Com Tam — Chicken/Fish',
+    meal_type: 'lunch',
+    description: 'Grilled chicken/fish + half rice + vegetables',
+    calories: 550,
+    protein_g: 40,
+  },
+  {
+    label: 'Protein Shake + Banana',
+    meal_type: 'snack',
+    description: 'Protein shake + banana or nuts',
+    calories: 300,
+    protein_g: 30,
+  },
+  {
+    label: 'Protein + Vegetables',
+    meal_type: 'dinner',
+    description: 'Protein + vegetables + optional small noodles',
+    calories: 500,
+    protein_g: 35,
+  },
+]
+
+export const WEEKLY_SCHEDULE = [
+  { day: 'Sun', label: 'Rest / Walk', type: 'rest', color: '#6b7280' },
+  { day: 'Mon', label: 'Workout A', type: 'A', color: '#e85d3a', duration: '30 min gym' },
+  { day: 'Tue', label: 'Badminton', type: 'badminton', color: '#3ecf8e', duration: '60 min' },
+  { day: 'Wed', label: 'Workout B', type: 'B', color: '#3ecf8e', duration: '30 min gym' },
+  { day: 'Thu', label: 'Badminton', type: 'badminton', color: '#3ecf8e', duration: '60 min' },
+  { day: 'Fri', label: 'Workout A / C', type: 'A', color: '#e85d3a', duration: '30 min gym' },
+  { day: 'Sat', label: 'Badminton + Sauna', type: 'badminton', color: '#f5c542', duration: '60 + 90 min' },
+]
+
+export const KEY_PRINCIPLES = [
+  'No spot reduction: core exercises build the "corset", diet removes the fat.',
+  'Compound > Isolation: every exercise uses multiple muscle groups.',
+  'Protein within 60 min after gym; protein-rich meal after badminton.',
+  'Badminton 3×/week IS the cardio — no treadmill needed at the gym.',
+  'Cut white carbs by 50%, replace with vegetables.',
+  'Stop eating by 8 PM (3 hours before sleep at 11 PM).',
+  'Track weight weekly, same conditions (morning, fasted).',
+]

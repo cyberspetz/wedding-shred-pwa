@@ -1,0 +1,41 @@
+/.DS_Store
+.DS_Store
+Thumbs.db
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# local env files — NEVER commit these
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# old app files (pre-Next.js)
+app.js
+cards/
+icons/
+index.html
+service-worker.js
+style.css

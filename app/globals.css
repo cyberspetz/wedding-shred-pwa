@@ -1,0 +1,108 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #0f1114;
+  --card: #1a1d23;
+  --accent: #e85d3a;
+  --green: #3ecf8e;
+  --yellow: #f5c542;
+  --muted: #6b7280;
+  --border: #2a2d35;
+}
+
+html,
+body {
+  background-color: var(--bg);
+  color: #f1f3f5;
+  font-family: 'DM Sans', sans-serif;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+
+/* Safe area padding for iPhone notch / home bar */
+.safe-top {
+  padding-top: env(safe-area-inset-top);
+}
+.safe-bottom {
+  padding-bottom: calc(env(safe-area-inset-bottom) + 4rem);
+}
+
+/* Bottom nav height + safe area */
+.pb-nav {
+  padding-bottom: calc(4.5rem + env(safe-area-inset-bottom));
+}
+
+/* Scrollbars */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 2px;
+}
+
+/* Number font */
+.font-num {
+  font-family: 'Space Mono', monospace;
+}
+
+/* Progress ring */
+@keyframes spin-in {
+  from { stroke-dashoffset: 283; }
+}
+
+/* Pulse for timer */
+@keyframes pulse-ring {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+.animate-pulse-ring {
+  animation: pulse-ring 1s ease-in-out infinite;
+}
+
+/* Slide-up sheet */
+@keyframes slide-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+.slide-up {
+  animation: slide-up 0.25s ease-out;
+}
+
+/* Fade */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.fade-in {
+  animation: fade-in 0.2s ease-out;
+}
+
+/* Checkbox animation */
+@keyframes check-pop {
+  0% { transform: scale(0.8); }
+  60% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+.check-pop {
+  animation: check-pop 0.2s ease-out;
+}
+
+/* Active states for touch */
+button:active, a:active {
+  opacity: 0.8;
+}
+
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
